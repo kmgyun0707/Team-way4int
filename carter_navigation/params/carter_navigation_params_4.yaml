@@ -1,0 +1,285 @@
+#시나리오2 에서 알고리즘 비교할때 사용할 파일
+#SmacPlaaner2D + MPPI Controller 기반 nova_carter Navigation Parameters File
+
+amcl: # Adaptive Monte Carlo Localization
+  ros__parameters:
+    use_sim_time: True
+    alpha1: 0.3
+    alpha2: 0.2
+    alpha3: 0.3
+    alpha4: 0.3
+    alpha5: 0.2
+    base_frame_id: "base_link"
+    beam_skip_distance: 0.5
+    beam_skip_error_threshold: 0.9
+    beam_skip_threshold: 0.3
+    do_beamskip: false
+    global_frame_id: "map"
+    lambda_short: 0.1
+    laser_likelihood_max_dist: 2.0
+    laser_max_range: 30.0
+    laser_min_range: -1.0
+    laser_model_type: "likelihood_field"
+    max_beams: 120
+    max_particles: 1200
+    min_particles: 500
+    odom_frame_id: "odom"
+    pf_err: 0.05
+    pf_z: 0.99
+    recovery_alpha_fast: 0.0
+    recovery_alpha_slow: 0.0
+    resample_interval: 3
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+    save_pose_rate: 0.5
+    sigma_hit: 0.5
+    tf_broadcast: true
+    transform_tolerance: 1.0
+    update_min_a: 0.1
+    update_min_d: 0.12
+    z_hit: 0.5
+    z_max: 0.05
+    z_rand: 0.5
+    z_short: 0.05
+    scan_topic: /front_2d_lidar/scan
+    map_topic: map
+    set_initial_pose: true
+    always_reset_initial_pose: false
+    first_map_only: false
+    initial_pose:
+      x: 10.0
+      y: 18.0
+      z: 0.0
+      yaw: 3.14159
+
+amcl_map_client:
+  ros__parameters:
+    use_sim_time: True
+
+amcl_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+bt_navigator: # Behavior Tree 기반 내비게이션
+  ros__parameters:
+    use_sim_time: True
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: /chassis/odom
+    bt_loop_duration: 20
+    default_server_timeout: 40
+    plugin_lib_names:
+    - nav2_compute_path_to_pose_action_bt_node
+    - nav2_compute_path_through_poses_action_bt_node
+    - nav2_smooth_path_action_bt_node
+    - nav2_follow_path_action_bt_node
+    - nav2_spin_action_bt_node
+    - nav2_wait_action_bt_node
+    - nav2_back_up_action_bt_node
+    - nav2_drive_on_heading_bt_node
+    - nav2_clear_costmap_service_bt_node
+    - nav2_is_stuck_condition_bt_node
+    - nav2_goal_reached_condition_bt_node
+    - nav2_goal_updated_condition_bt_node
+    - nav2_globally_updated_goal_condition_bt_node
+    - nav2_is_path_valid_condition_bt_node
+    - nav2_initial_pose_received_condition_bt_node
+    - nav2_reinitialize_global_localization_service_bt_node
+    - nav2_rate_controller_bt_node
+    - nav2_distance_controller_bt_node
+    - nav2_speed_controller_bt_node
+    - nav2_truncate_path_action_bt_node
+    - nav2_truncate_path_local_action_bt_node
+    - nav2_goal_updater_node_bt_node
+    - nav2_recovery_node_bt_node
+    - nav2_pipeline_sequence_bt_node
+    - nav2_round_robin_node_bt_node
+    - nav2_transform_available_condition_bt_node
+    - nav2_time_expired_condition_bt_node
+    - nav2_path_expiring_timer_condition
+    - nav2_distance_traveled_condition_bt_node
+    - nav2_single_trigger_bt_node
+    - nav2_is_battery_low_condition_bt_node
+    - nav2_navigate_through_poses_action_bt_node
+    - nav2_navigate_to_pose_action_bt_node
+    - nav2_remove_passed_goals_action_bt_node
+    - nav2_planner_selector_bt_node
+    - nav2_controller_selector_bt_node
+    - nav2_goal_checker_selector_bt_node
+    - nav2_controller_cancel_bt_node
+    - nav2_path_longer_on_approach_bt_node
+    - nav2_wait_cancel_bt_node
+    - nav2_spin_cancel_bt_node
+    - nav2_back_up_cancel_bt_node
+    - nav2_drive_on_heading_cancel_bt_node
+
+bt_navigator_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+velocity_smoother: # Velocity Smoother (MPPI는 자체적으로 부드럽지만 안전망으로 유지)
+  ros__parameters: 
+    smoothing_frequency: 20.0 
+    scale_velocities: false 
+    feedback: "OPEN_LOOP" 
+    max_velocity: [0.8, 0.0, 0.7] 
+    min_velocity: [-0.8, 0.0, -0.7] 
+    velocity_timeout: 1.0 
+    odom_topic: "chassis/odom" 
+    odom_duration: 0.1
+
+controller_server: # [변경됨] DWB -> MPPI Controller (강력한 장애물 회피)
+  ros__parameters:
+    use_sim_time: True
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.5
+    min_theta_velocity_threshold: 0.01
+    failure_tolerance: 0.3
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugin: ["stopped_goal_checker"]
+    # MPPI로 변경
+    controller_plugins: ["FollowPath"]
+
+    # Progress checker parameters
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 20.0
+    
+    # Goal checker parameters
+    stopped_goal_checker:
+      plugin: "nav2_controller::StoppedGoalChecker"
+      xy_goal_tolerance: 0.30
+      yaw_goal_tolerance: 0.30
+      stateful: True
+    
+    # [핵심 변경] MPPI Controller 설정
+    FollowPath:
+      plugin: "nav2_mppi_controller::MPPIController"
+      time_steps: 56
+      model_dt: 0.05
+      batch_size: 2000 # 경로 후보 생성 개수 (PC 사양이 낮으면 1000으로 조절)
+      vx_std: 0.2
+      vy_std: 0.2
+      wz_std: 0.4
+      vx_max: 0.8  # 사용자 기존 설정 유지
+      vx_min: -0.5 # 후진 허용
+      wz_max: 0.7  # 사용자 기존 설정 유지
+      iteration_count: 1
+      prune_distance: 1.7
+      transform_tolerance: 0.1
+      temperature: 0.3
+      gamma: 0.015
+      motion_model: "DiffDrive" # 2륜 차동 로봇 모델
+      visualize: true
+      retry_on_infeasible: false
+      
+      # MPPI Critics (비용 함수 - 로봇의 거동을 결정)
+      critics: ["ConstraintCritic", "ObstacleCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic", "PathAngleCritic", "PreferForwardCritic"]
+      
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 4.0
+      
+      ObstacleCritic:
+        enabled: true
+        cost_power: 1
+        repulsion_weight: 1.5
+        critical_weight: 20.0
+        consider_footprint: false
+        collision_cost: 10000.0
+        near_goal_distance: 0.5
+        cost_weight: 4.0 # 장애물 회피 중요도
+        inflation_layer_name: "inflation_layer" # 로컬 코스트맵 레이어 이름 일치 확인 필요
+
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 1.4
+
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0
+        threshold_to_consider: 0.5
+
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 14.0 # 경로에서 벗어나지 않도록
+        max_path_occupancy_ratio: 0.05
+        trajectory_point_step: 3
+        threshold_to_consider: 0.5
+        offset_from_furthest: 20
+        use_path_orientations: false
+
+      PathFollowCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        offset_from_furthest: 5
+        threshold_to_consider: 1.4
+
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 0.785
+        mode: 0
+
+      PreferForwardCritic: # 후진보다 전진을 선호하게 만듦
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 0.5
+
+controller_server_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 10.0
+      publish_frequency: 6.0
+      footprint_padding: 0.0
+      global_frame: odom
+      robot_base_frame: base_link
+      use_sim_time: True
+      rolling_window: True
+      width: 10
+      height: 10
+      resolution: 0.05
+      transform_tolerance: 0.3
+      footprint: "[ [0.14, 0.25], [0.14, -0.25], [-0.607, -0.25], [-0.607, 0.25] ]" # 사용자 기존 Footprint
+      plugins: ["hesai_voxel_layer", "front_rplidar_obstacle_layer", "back_rplidar_obstacle_layer", "inflation_layer"]
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        enabled: True
+        cost_scaling_factor: 8.0
+        inflation_radius: 0.2
+      hesai_voxel_layer:
+        plugin: "nav2_costmap_2d::VoxelLayer"
+        enabled: False
+        footprint_clearing_enabled: true
+        max_obstacle_height: 2.0
+        publish_voxel_map: False
+        origin_z: 0.0
+        z_voxels: 2
+        z_resolution: 0.05
+        unknown_threshold: 15
+      front_rplidar_obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /front_2d_lidar/scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          reliability: "reliable"
