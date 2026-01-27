@@ -62,11 +62,15 @@ graph TD
 
 * **OS:** Ubuntu 22.04 LTS (Jammy Jellyfish)
 * **Middleware:** ROS 2 Humble Hawksbill
-* **Simulator:** NVIDIA Isaac Sim (2023.1.x / 4.0)
+* **Simulator:** NVIDIA Isaac Sim (5.0)
 * **Language:** Python 3.10
 * **Key Libraries:** `rclpy`, `nav2_simple_commander`, `ultralytics`, `cv_bridge`
 
 ## ⚙️ 사용 장비 (Hardware Setup)
+pc: MSI Vector 16 HX AI A2XWIG-U9 QHD+
+    CPU: 인텔 Ultra 9 275HX (인텔 AI 부스트, NPU)
+    GPU: 엔비디아 지포스 RTX 5080 Laptop GPU (16GB GDDR7, 1,334 AI TOPS)
+    RAM: 64GB
 
 본 프로젝트는 **NVIDIA Isaac Sim**의 **Nova Carter** 로봇 모델을 기준으로 개발되었습니다.
 
