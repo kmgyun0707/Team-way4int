@@ -1,8 +1,9 @@
 <img width="1920" height="1080" alt="image (3)" src="https://github.com/user-attachments/assets/1588a09d-d87d-4066-81cb-e2643e0ed201" />
 "Real-time Obstacle Avoidance & Path Planning" Visualized global/local costmaps in RViz. The robot successfully navigates dynamic environments, demonstrating the capability to safely transport chemical samples without collisions in a crowded lab."
 
-<img width="1920" height="1080" alt="image (4)" src="https://github.com/user-attachments/assets/1e4a4b31-7987-4066-baef-872d9cbd13d6" />
-## ⚙️ Navigation Parameter Tuning
+<img width="1920" height="1080" alt="image (5)" src="https://github.com/user-attachments/assets/4ce0e257-04b7-4373-8d1d-5d017a75a015" />
+## ⚙️ Navigation Parameter Tuning      
+
 > *Fine-tuned ROS 2 Nav2 parameters (YAML) to optimize localization accuracy and obstacle avoidance behavior.*
 
 **Key Optimizations:**
